@@ -17,7 +17,7 @@
 
 ## 🚀 Демо
 
-[Открыть доску](https://visnionus.github.io/kanban-doska/)
+[Открыть доску](https://visnionus.github.io/kanban_doska/)
 
 ## 🛠 Технологии
 
