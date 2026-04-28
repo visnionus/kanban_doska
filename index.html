@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban доска</title>
+    <title>KanbanFlow - Доска задач</title>
     <style>
         :root {
             --bg: #f0f2f5;
@@ -19,14 +19,12 @@
             --danger: #e74c3c;
             --danger-hover: #c0392b;
             --success: #27ae60;
-            --warning: #f39c12;
             --column-bg: #f5f6fa;
             --card-hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
             --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            --emoji-picker-bg: #fff;
-            --modal-overlay: rgba(0,0,0,0.4);
             --badge-bg: #eee;
             --badge-text: #444;
+            --modal-overlay: rgba(0,0,0,0.4);
         }
 
         .dark {
@@ -40,10 +38,9 @@
             --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
             --column-bg: #1f2024;
             --card-hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-            --emoji-picker-bg: #2c2e33;
-            --modal-overlay: rgba(0,0,0,0.7);
             --badge-bg: #3a3b40;
             --badge-text: #ccc;
+            --modal-overlay: rgba(0,0,0,0.7);
         }
 
         * {
@@ -58,6 +55,8 @@
             color: var(--text);
             min-height: 100vh;
             transition: background var(--transition), color var(--transition);
+            margin: 0;
+            padding: 0;
         }
 
         .header {
@@ -83,7 +82,7 @@
         }
 
         .logo {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 700;
             letter-spacing: -0.5px;
             background: linear-gradient(135deg, #6c5ce7, #a29bfe);
@@ -100,10 +99,11 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: all var(--transition);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
             letter-spacing: 0.2px;
+            font-family: inherit;
         }
 
         .btn-primary {
@@ -133,17 +133,6 @@
             border-radius: 8px;
         }
 
-        .btn-icon {
-            width: 38px;
-            height: 38px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 1.2rem;
-        }
-
         .btn-danger {
             background: var(--danger);
             color: #fff;
@@ -159,7 +148,7 @@
             gap: 24px;
             padding: 28px 32px;
             overflow-x: auto;
-            min-height: calc(100vh - 200px);
+            min-height: calc(100vh - 250px);
             align-items: flex-start;
         }
 
@@ -182,7 +171,7 @@
             justify-content: space-between;
             align-items: center;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 1.1rem;
             letter-spacing: 0.3px;
         }
 
@@ -222,6 +211,7 @@
             flex-direction: column;
             gap: 10px;
             animation: fadeSlideIn 0.25s ease;
+            user-select: none;
         }
         @keyframes fadeSlideIn {
             from { opacity: 0; transform: translateY(15px); }
@@ -243,17 +233,6 @@
             border: 2px dashed var(--accent);
             background: rgba(108, 92, 231, 0.03);
         }
-        .card.deleting {
-            animation: deleteAnim 0.3s ease forwards;
-        }
-        @keyframes deleteAnim {
-            to { 
-                opacity: 0; 
-                transform: scale(0.8) translateX(20px); 
-                margin-bottom: -80px;
-                padding: 0;
-            }
-        }
 
         .card-header {
             display: flex;
@@ -269,6 +248,7 @@
             background: var(--badge-bg);
             border-radius: 10px;
             padding: 4px 8px;
+            user-select: none;
         }
         .card-emoji:hover {
             transform: scale(1.2);
@@ -281,6 +261,8 @@
             font-size: 0.75rem;
             font-weight: 600;
             letter-spacing: 0.3px;
+            flex: 1;
+            text-align: center;
         }
         .card-color-indicator {
             width: 16px;
@@ -289,6 +271,7 @@
             border: 2px solid var(--border);
             cursor: pointer;
             transition: transform 0.2s;
+            flex-shrink: 0;
         }
         .card-color-indicator:hover {
             transform: scale(1.3);
@@ -313,20 +296,20 @@
             background: var(--border);
         }
         .card-actions .btn-archive {
-            background: rgba(39, 174, 96, 0.08);
+            background: rgba(39, 174, 96, 0.1);
             color: var(--success);
             border-color: transparent;
         }
         .card-actions .btn-archive:hover {
-            background: rgba(39, 174, 96, 0.15);
+            background: rgba(39, 174, 96, 0.2);
         }
         .card-actions .btn-delete {
-            background: rgba(231, 76, 60, 0.08);
+            background: rgba(231, 76, 60, 0.1);
             color: var(--danger);
             border-color: transparent;
         }
         .card-actions .btn-delete:hover {
-            background: rgba(231, 76, 60, 0.15);
+            background: rgba(231, 76, 60, 0.2);
         }
 
         .archive-section {
@@ -351,6 +334,7 @@
             justify-content: space-between;
             align-items: center;
             transition: background 0.2s;
+            font-family: inherit;
         }
         .archive-toggle:hover {
             background: var(--surface2);
@@ -399,10 +383,12 @@
         .modal h3 {
             font-size: 1.3rem;
             font-weight: 700;
+            margin: 0;
         }
         .modal p {
             color: var(--text2);
             line-height: 1.5;
+            margin: 0;
         }
         .form-group {
             display: flex;
@@ -430,11 +416,6 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
         }
-        .form-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
         .color-presets {
             display: flex;
             gap: 8px;
@@ -447,6 +428,7 @@
             cursor: pointer;
             border: 3px solid transparent;
             transition: all 0.15s;
+            flex-shrink: 0;
         }
         .color-preset:hover { transform: scale(1.15); }
         .color-preset.active { border-color: var(--text); transform: scale(1.1); }
@@ -466,6 +448,7 @@
             padding: 6px;
             border-radius: 8px;
             transition: background 0.15s;
+            user-select: none;
         }
         .emoji-option:hover { background: var(--border); }
         .modal-buttons {
@@ -477,16 +460,16 @@
         .drop-zone-empty {
             text-align: center;
             color: var(--text2);
-            padding: 20px;
+            padding: 30px 20px;
             font-style: italic;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             border: 2px dashed var(--border);
             border-radius: 16px;
             margin: 8px;
         }
     </style>
 </head>
-<body class="light">
+<body>
 <div class="header">
     <div class="header-left">
         <span class="logo">📋 KanbanFlow</span>
@@ -495,9 +478,7 @@
     <button class="btn btn-primary" id="addCardBtn">➕ Новое дело</button>
 </div>
 
-<div class="board" id="board">
-    <!-- генерируется JS -->
-</div>
+<div class="board" id="board"></div>
 
 <div class="archive-section">
     <button class="archive-toggle" id="archiveToggle">
@@ -511,562 +492,599 @@
 </div>
 
 <script>
-    (function() {
-        // ---------- СОСТОЯНИЕ ----------
-        const STORAGE_KEY = 'kanban_board_data';
-        const THEME_KEY = 'kanban_theme';
+(function() {
+    // Данные
+    const STORAGE_KEY = 'kanban_board_data';
+    const THEME_KEY = 'kanban_theme';
 
-        const defaultColumns = [
-            { id: 'todo', title: '📌 Сделать' },
-            { id: 'inprogress', title: '⚡ В процессе' },
-            { id: 'done', title: '✅ Готово' },
+    const defaultColumns = [
+        { id: 'todo', title: '📌 Сделать' },
+        { id: 'inprogress', title: '⚡ В процессе' },
+        { id: 'done', title: '✅ Готово' },
+    ];
+
+    const emojiList = [
+        '📝', '💡', '🔥', '⭐', '🚀', '🐛', '🎯', '💬', '🧠', '🎨',
+        '📊', '🔧', '🛠️', '📌', '⏳', '💎', '🎉', '🧩', '📎', '🔔',
+        '❤️', '👍', '👎', '😎', '🤖', '🎵', '📸', '🌍', '🍀', '⚡'
+    ];
+
+    const colorPresets = [
+        '#ff6b6b', '#ffa502', '#ffd32a', '#2ed573', '#1e90ff',
+        '#6c5ce7', '#a55eea', '#ff6eb4', '#00d2d3', '#ff9ff3',
+        '#54a0ff', '#5f27cd', '#01a3a4', '#f368e0', '#ff6348',
+        '#7bed9f', '#70a1ff', '#5352ed', '#ff4757', '#2bcbba',
+    ];
+
+    let data = {
+        columns: JSON.parse(JSON.stringify(defaultColumns)),
+        cards: [],
+        archivedCards: []
+    };
+
+    // Инициализация с тестовыми данными
+    function initTestData() {
+        data.cards = [
+            {
+                id: 'card_test_1',
+                text: 'Изучить новую технологию',
+                emoji: '💡',
+                label: 'обучение',
+                color: '#6c5ce7',
+                columnId: 'todo',
+                createdAt: Date.now()
+            },
+            {
+                id: 'card_test_2',
+                text: 'Написать документацию',
+                emoji: '📝',
+                label: 'важно',
+                color: '#ffa502',
+                columnId: 'inprogress',
+                createdAt: Date.now()
+            },
+            {
+                id: 'card_test_3',
+                text: 'Пофиксить баги',
+                emoji: '🐛',
+                label: 'срочно',
+                color: '#ff6b6b',
+                columnId: 'todo',
+                createdAt: Date.now()
+            }
         ];
+    }
 
-        // Эмодзи для выбора
-        const emojiList = [
-            '📝', '💡', '🔥', '⭐', '🚀', '🐛', '🎯', '💬', '🧠', '🎨',
-            '📊', '🔧', '🛠️', '📌', '⏳', '💎', '🎉', '🧩', '📎', '🔔',
-            '❤️', '👍', '👎', '😎', '🤖', '🎵', '📸', '🌍', '🍀', '⚡'
-        ];
+    function generateId() {
+        return 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
 
-        // Цвета для подсветки
-        const colorPresets = [
-            '#ff6b6b', '#ffa502', '#ffd32a', '#2ed573', '#1e90ff',
-            '#6c5ce7', '#a55eea', '#ff6eb4', '#00d2d3', '#ff9ff3',
-            '#54a0ff', '#5f27cd', '#01a3a4', '#f368e0', '#ff6348',
-            '#7bed9f', '#70a1ff', '#5352ed', '#ff4757', '#2bcbba',
-        ];
+    function saveData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
 
-        let data = {
-            columns: JSON.parse(JSON.stringify(defaultColumns)),
-            cards: [],
-            archivedCards: []
-        };
-
-        // ---------- УТИЛИТЫ ----------
-        function generateId() {
-            return 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    data.columns = parsed.columns || JSON.parse(JSON.stringify(defaultColumns));
+    function loadData() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.columns && parsed.cards) {
+                    data.columns = parsed.columns;
                     data.cards = parsed.cards || [];
                     data.archivedCards = parsed.archivedCards || [];
-                } catch (e) {
-                    resetData();
+                    return;
                 }
-            } else {
-                resetData();
+            } catch (e) {
+                console.log('Ошибка загрузки, создаём тестовые данные');
             }
         }
+        // Если нет сохраненных данных, загружаем тестовые
+        initTestData();
+        saveData();
+    }
 
-        function resetData() {
-            data.columns = JSON.parse(JSON.stringify(defaultColumns));
-            data.cards = [];
-            data.archivedCards = [];
+    function getCardsByColumn(columnId) {
+        return data.cards.filter(c => c.columnId === columnId);
+    }
+
+    // Тема
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.body.classList.add('dark');
+        } else {
+            document.body.classList.remove('dark');
         }
+        localStorage.setItem(THEME_KEY, theme);
+    }
 
-        function getCardsByColumn(columnId) {
-            return data.cards.filter(c => c.columnId === columnId);
+    function toggleTheme() {
+        const current = localStorage.getItem(THEME_KEY) || 'light';
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // Рендер
+    function renderBoard() {
+        const board = document.getElementById('board');
+        if (!board) {
+            console.error('Элемент #board не найден!');
+            return;
         }
+        board.innerHTML = '';
 
-        // ---------- ТЕМА ----------
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.body.classList.add('dark');
-            } else {
-                document.body.classList.remove('dark');
-            }
-            localStorage.setItem(THEME_KEY, theme);
-        }
-
-        function toggleTheme() {
-            const current = localStorage.getItem(THEME_KEY) || 'light';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
-        }
-
-        // ---------- РЕНДЕР ----------
-        function renderBoard() {
-            const board = document.getElementById('board');
-            board.innerHTML = '';
-
-            data.columns.forEach(col => {
-                const columnEl = document.createElement('div');
-                columnEl.className = 'column';
-                columnEl.dataset.columnId = col.id;
-                columnEl.innerHTML = `
-                    <div class="column-header">
-                        <span class="column-title">${col.title}</span>
-                        <span class="column-count">${getCardsByColumn(col.id).length}</span>
-                    </div>
-                    <div class="column-body" data-column-id="${col.id}"></div>
-                `;
-
-                const body = columnEl.querySelector('.column-body');
-                const cards = getCardsByColumn(col.id);
-                if (cards.length === 0) {
-                    body.innerHTML = '<div class="drop-zone-empty">Перетащите дело сюда</div>';
-                } else {
-                    cards.forEach(card => body.appendChild(createCardElement(card)));
-                }
-
-                // Drag & Drop события на колонке
-                body.addEventListener('dragover', handleDragOver);
-                body.addEventListener('dragleave', handleDragLeave);
-                body.addEventListener('drop', handleDrop);
-
-                board.appendChild(columnEl);
-            });
-
-            renderArchive();
-        }
-
-        function createCardElement(card) {
-            const cardEl = document.createElement('div');
-            cardEl.className = 'card';
-            cardEl.draggable = true;
-            cardEl.dataset.cardId = card.id;
-            cardEl.style.borderLeft = `4px solid ${card.color || '#6c5ce7'}`;
-
-            cardEl.innerHTML = `
-                <div class="card-header">
-                    <span class="card-emoji" data-action="change-emoji">${card.emoji || '📝'}</span>
-                    <span class="card-text-badge">${escapeHtml(card.label || '')}</span>
-                    <span class="card-color-indicator" style="background: ${card.color || '#6c5ce7'};" data-action="change-color"></span>
+        data.columns.forEach(col => {
+            const columnEl = document.createElement('div');
+            columnEl.className = 'column';
+            columnEl.dataset.columnId = col.id;
+            
+            const cards = getCardsByColumn(col.id);
+            
+            columnEl.innerHTML = `
+                <div class="column-header">
+                    <span class="column-title">${col.title}</span>
+                    <span class="column-count">${cards.length}</span>
                 </div>
-                <div class="card-body-text">${escapeHtml(card.text)}</div>
-                <div class="card-actions">
-                    <button class="btn btn-sm" data-action="rename" title="Переименовать">✏️</button>
-                    <button class="btn btn-sm btn-archive" data-action="archive" title="Архивировать">📦</button>
-                    <button class="btn btn-sm btn-delete" data-action="delete" title="Удалить">🗑️</button>
+                <div class="column-body" data-column-id="${col.id}">
+                    ${cards.length === 0 ? '<div class="drop-zone-empty">Перетащите дело сюда</div>' : ''}
                 </div>
             `;
 
-            // Drag события
-            cardEl.addEventListener('dragstart', handleDragStart);
-            cardEl.addEventListener('dragend', handleDragEnd);
-
-            // Клики по кнопкам
-            cardEl.querySelector('[data-action="change-emoji"]').addEventListener('click', (e) => {
-                e.stopPropagation();
-                openEmojiPicker(card.id);
-            });
-            cardEl.querySelector('[data-action="change-color"]').addEventListener('click', (e) => {
-                e.stopPropagation();
-                openColorPicker(card.id);
-            });
-            cardEl.querySelector('[data-action="rename"]').addEventListener('click', (e) => {
-                e.stopPropagation();
-                openRenameModal(card.id);
-            });
-            cardEl.querySelector('[data-action="archive"]').addEventListener('click', (e) => {
-                e.stopPropagation();
-                archiveCard(card.id);
-            });
-            cardEl.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
-                e.stopPropagation();
-                openDeleteConfirm(card.id);
+            const body = columnEl.querySelector('.column-body');
+            
+            cards.forEach(card => {
+                body.appendChild(createCardElement(card));
             });
 
-            return cardEl;
+            // Drag & Drop события
+            body.addEventListener('dragover', handleDragOver);
+            body.addEventListener('dragleave', handleDragLeave);
+            body.addEventListener('drop', handleDrop);
+
+            board.appendChild(columnEl);
+        });
+
+        renderArchive();
+    }
+
+    function createCardElement(card) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.draggable = true;
+        cardEl.dataset.cardId = card.id;
+        cardEl.style.borderLeft = `4px solid ${card.color || '#6c5ce7'}`;
+
+        cardEl.innerHTML = `
+            <div class="card-header">
+                <span class="card-emoji" data-action="change-emoji">${card.emoji || '📝'}</span>
+                <span class="card-text-badge">${escapeHtml(card.label || '')}</span>
+                <span class="card-color-indicator" style="background: ${card.color || '#6c5ce7'};" data-action="change-color"></span>
+            </div>
+            <div class="card-body-text">${escapeHtml(card.text)}</div>
+            <div class="card-actions">
+                <button class="btn btn-sm" data-action="rename" title="Переименовать">✏️</button>
+                <button class="btn btn-sm btn-archive" data-action="archive" title="Архивировать">📦</button>
+                <button class="btn btn-sm btn-delete" data-action="delete" title="Удалить">🗑️</button>
+            </div>
+        `;
+
+        // Drag события
+        cardEl.addEventListener('dragstart', handleDragStart);
+        cardEl.addEventListener('dragend', handleDragEnd);
+
+        // Клики
+        cardEl.querySelector('[data-action="change-emoji"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEmojiPicker(card.id);
+        });
+        
+        cardEl.querySelector('[data-action="change-color"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openColorPicker(card.id);
+        });
+        
+        cardEl.querySelector('[data-action="rename"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openRenameModal(card.id);
+        });
+        
+        cardEl.querySelector('[data-action="archive"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            archiveCard(card.id);
+        });
+        
+        cardEl.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDeleteConfirm(card.id);
+        });
+
+        return cardEl;
+    }
+
+    function renderArchive() {
+        const archiveBody = document.getElementById('archiveBody');
+        if (!archiveBody) return;
+        
+        archiveBody.innerHTML = '';
+        
+        if (data.archivedCards.length === 0) {
+            archiveBody.innerHTML = '<p style="color: var(--text2); padding: 20px; width: 100%; text-align: center;">Архив пуст</p>';
+            return;
         }
-
-        function renderArchive() {
-            const archiveBody = document.getElementById('archiveBody');
-            archiveBody.innerHTML = '';
-            if (data.archivedCards.length === 0) {
-                archiveBody.innerHTML = '<p style="color: var(--text2); padding: 10px;">Архив пуст</p>';
-                return;
+        
+        data.archivedCards.forEach(card => {
+            const cardEl = createCardElement(card);
+            cardEl.classList.add('archived-card');
+            cardEl.draggable = false;
+            
+            const archiveBtn = cardEl.querySelector('[data-action="archive"]');
+            if (archiveBtn) {
+                archiveBtn.textContent = '↩️';
+                archiveBtn.className = 'btn btn-sm';
+                archiveBtn.title = 'Восстановить';
+                archiveBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    restoreCard(card.id);
+                };
             }
-            data.archivedCards.forEach(card => {
-                const cardEl = createCardElement(card);
-                cardEl.classList.add('archived-card');
-                cardEl.draggable = false;
-                // Меняем кнопку архивации на восстановление
-                const archiveBtn = cardEl.querySelector('[data-action="archive"]');
-                if (archiveBtn) {
-                    archiveBtn.textContent = '↩️';
-                    archiveBtn.className = 'btn btn-sm';
-                    archiveBtn.title = 'Восстановить';
-                    archiveBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        restoreCard(card.id);
-                    };
-                }
-                archiveBody.appendChild(cardEl);
-            });
-        }
+            archiveBody.appendChild(cardEl);
+        });
+    }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
 
-        // ---------- DRAG & DROP ----------
-        let draggedCardId = null;
+    // Drag & Drop
+    let draggedCardId = null;
 
-        function handleDragStart(e) {
-            draggedCardId = this.dataset.cardId;
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', draggedCardId);
-        }
+    function handleDragStart(e) {
+        draggedCardId = this.dataset.cardId;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', draggedCardId);
+    }
 
-        function handleDragEnd(e) {
-            this.classList.remove('dragging');
-            draggedCardId = null;
-            document.querySelectorAll('.card.drag-over').forEach(el => el.classList.remove('drag-over'));
-        }
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        draggedCardId = null;
+        document.querySelectorAll('.card.drag-over').forEach(el => el.classList.remove('drag-over'));
+    }
 
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            this.classList.add('drag-over');
-        }
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        this.classList.add('drag-over');
+    }
 
-        function handleDragLeave(e) {
-            this.classList.remove('drag-over');
-        }
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
 
-        function handleDrop(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
-            const columnId = this.dataset.columnId;
-            const cardId = e.dataTransfer.getData('text/plain') || draggedCardId;
-            if (!cardId || !columnId) return;
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        const columnId = this.dataset.columnId;
+        const cardId = e.dataTransfer.getData('text/plain') || draggedCardId;
+        if (!cardId || !columnId) return;
 
-            // Ищем карту (может быть в активных или архиве)
-            let card = data.cards.find(c => c.id === cardId);
-            if (!card) {
-                card = data.archivedCards.find(c => c.id === cardId);
-                if (card) {
-                    // Перемещаем из архива в активные
-                    data.archivedCards = data.archivedCards.filter(c => c.id !== cardId);
-                    card.columnId = columnId;
-                    data.cards.push(card);
-                }
-            } else {
+        let card = data.cards.find(c => c.id === cardId);
+        if (card) {
+            card.columnId = columnId;
+        } else {
+            card = data.archivedCards.find(c => c.id === cardId);
+            if (card) {
+                data.archivedCards = data.archivedCards.filter(c => c.id !== cardId);
                 card.columnId = columnId;
+                data.cards.push(card);
             }
-            saveData();
-            renderAll();
         }
+        saveData();
+        renderBoard();
+    }
 
-        // ---------- ДЕЙСТВИЯ ----------
-        function addCard(text, emoji, label, color, columnId) {
-            const newCard = {
-                id: generateId(),
-                text: text || 'Новое дело',
-                emoji: emoji || '📝',
-                label: label || '',
-                color: color || '#6c5ce7',
-                columnId: columnId || data.columns[0].id,
-                createdAt: Date.now()
-            };
-            data.cards.push(newCard);
-            saveData();
-            renderAll();
+    // Действия
+    function addCard(text, emoji, label, color, columnId) {
+        const newCard = {
+            id: generateId(),
+            text: text || 'Новое дело',
+            emoji: emoji || '📝',
+            label: label || '',
+            color: color || '#6c5ce7',
+            columnId: columnId || data.columns[0].id,
+            createdAt: Date.now()
+        };
+        data.cards.push(newCard);
+        saveData();
+        renderBoard();
+    }
+
+    function deleteCard(cardId) {
+        data.cards = data.cards.filter(c => c.id !== cardId);
+        data.archivedCards = data.archivedCards.filter(c => c.id !== cardId);
+        saveData();
+        renderBoard();
+    }
+
+    function archiveCard(cardId) {
+        const cardIndex = data.cards.findIndex(c => c.id === cardId);
+        if (cardIndex === -1) return;
+        const card = data.cards.splice(cardIndex, 1)[0];
+        data.archivedCards.push(card);
+        saveData();
+        renderBoard();
+    }
+
+    function restoreCard(cardId) {
+        const cardIndex = data.archivedCards.findIndex(c => c.id === cardId);
+        if (cardIndex === -1) return;
+        const card = data.archivedCards.splice(cardIndex, 1)[0];
+        card.columnId = data.columns[0].id;
+        data.cards.push(card);
+        saveData();
+        renderBoard();
+    }
+
+    function renameCard(cardId, newText, newLabel) {
+        const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+        if (!card) return;
+        if (newText !== undefined) card.text = newText;
+        if (newLabel !== undefined) card.label = newLabel;
+        saveData();
+        renderBoard();
+    }
+
+    function updateCardEmoji(cardId, emoji) {
+        const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+        if (!card) return;
+        card.emoji = emoji;
+        saveData();
+        renderBoard();
+    }
+
+    function updateCardColor(cardId, color) {
+        const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+        if (!card) return;
+        card.color = color;
+        saveData();
+        renderBoard();
+    }
+
+    // Модальные окна
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalContent = document.getElementById('modalContent');
+
+    function openModal(html) {
+        modalContent.innerHTML = html;
+        modalOverlay.style.display = 'flex';
+    }
+
+    function closeModal() {
+        modalOverlay.style.display = 'none';
+        modalContent.innerHTML = '';
+    }
+
+    window.closeModal = closeModal;
+
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalOverlay.style.display === 'flex') {
+            closeModal();
         }
+    });
 
-        function deleteCard(cardId) {
-            // Удаляем из активных
-            data.cards = data.cards.filter(c => c.id !== cardId);
-            // Удаляем из архива
-            data.archivedCards = data.archivedCards.filter(c => c.id !== cardId);
-            saveData();
-            renderAll();
-        }
+    function openAddCardModal() {
+        const html = `
+            <h3>✨ Новое дело</h3>
+            <div class="form-group">
+                <label>Текст дела</label>
+                <input type="text" id="newCardText" placeholder="Что нужно сделать?" autofocus>
+            </div>
+            <div class="form-group">
+                <label>Текстовая пометка</label>
+                <input type="text" id="newCardLabel" placeholder="Например: срочно, баг, фича">
+            </div>
+            <div class="form-group">
+                <label>Эмодзи</label>
+                <div class="emoji-grid" id="emojiPickerNew">${emojiList.map(e => `<span class="emoji-option" data-emoji="${e}">${e}</span>`).join('')}</div>
+                <input type="hidden" id="selectedEmojiNew" value="📝">
+            </div>
+            <div class="form-group">
+                <label>Цвет подсветки</label>
+                <div class="color-presets" id="colorPickerNew">${colorPresets.map(c => `<span class="color-preset" style="background:${c};" data-color="${c}"></span>`).join('')}</div>
+                <input type="hidden" id="selectedColorNew" value="#6c5ce7">
+            </div>
+            <div class="form-group">
+                <label>Колонка</label>
+                <select id="newCardColumn">
+                    ${data.columns.map(c => `<option value="${c.id}">${c.title}</option>`).join('')}
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" id="saveNewCard">Создать</button>
+            </div>
+        `;
+        openModal(html);
 
-        function archiveCard(cardId) {
-            const cardIndex = data.cards.findIndex(c => c.id === cardId);
-            if (cardIndex === -1) return;
-            const card = data.cards.splice(cardIndex, 1)[0];
-            data.archivedCards.push(card);
-            saveData();
-            renderAll();
-        }
+        setTimeout(() => {
+            const emojiPicker = document.getElementById('emojiPickerNew');
+            const colorPicker = document.getElementById('colorPickerNew');
+            
+            const firstEmoji = emojiPicker?.querySelector('.emoji-option');
+            if (firstEmoji) firstEmoji.style.background = 'var(--border)';
+            
+            const firstColor = colorPicker?.querySelector('.color-preset');
+            if (firstColor) firstColor.classList.add('active');
 
-        function restoreCard(cardId) {
-            const cardIndex = data.archivedCards.findIndex(c => c.id === cardId);
-            if (cardIndex === -1) return;
-            const card = data.archivedCards.splice(cardIndex, 1)[0];
-            card.columnId = data.columns[0].id; // Возвращаем в первую колонку
-            data.cards.push(card);
-            saveData();
-            renderAll();
-        }
-
-        function renameCard(cardId, newText, newLabel) {
-            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
-            if (!card) return;
-            if (newText !== undefined) card.text = newText;
-            if (newLabel !== undefined) card.label = newLabel;
-            saveData();
-            renderAll();
-        }
-
-        function updateCardEmoji(cardId, emoji) {
-            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
-            if (!card) return;
-            card.emoji = emoji;
-            saveData();
-            renderAll();
-        }
-
-        function updateCardColor(cardId, color) {
-            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
-            if (!card) return;
-            card.color = color;
-            saveData();
-            renderAll();
-        }
-
-        function renderAll() {
-            renderBoard();
-        }
-
-        // ---------- МОДАЛЬНЫЕ ОКНА ----------
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalContent = document.getElementById('modalContent');
-
-        function openModal(html) {
-            modalContent.innerHTML = html;
-            modalOverlay.style.display = 'flex';
-        }
-
-        function closeModal() {
-            modalOverlay.style.display = 'none';
-            modalContent.innerHTML = '';
-        }
-
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) closeModal();
-        });
-
-        // Закрытие по Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modalOverlay.style.display === 'flex') {
+            emojiPicker?.addEventListener('click', (e) => {
+                const emojiEl = e.target.closest('.emoji-option');
+                if (emojiEl) {
+                    document.getElementById('selectedEmojiNew').value = emojiEl.dataset.emoji;
+                    emojiPicker.querySelectorAll('.emoji-option').forEach(el => el.style.background = '');
+                    emojiEl.style.background = 'var(--border)';
+                }
+            });
+            
+            colorPicker?.addEventListener('click', (e) => {
+                const colorEl = e.target.closest('.color-preset');
+                if (colorEl) {
+                    document.getElementById('selectedColorNew').value = colorEl.dataset.color;
+                    colorPicker.querySelectorAll('.color-preset').forEach(el => el.classList.remove('active'));
+                    colorEl.classList.add('active');
+                }
+            });
+            
+            document.getElementById('saveNewCard')?.addEventListener('click', () => {
+                const text = document.getElementById('newCardText')?.value.trim() || 'Новое дело';
+                const label = document.getElementById('newCardLabel')?.value.trim() || '';
+                const emoji = document.getElementById('selectedEmojiNew')?.value || '📝';
+                const color = document.getElementById('selectedColorNew')?.value || '#6c5ce7';
+                const columnId = document.getElementById('newCardColumn')?.value || data.columns[0].id;
+                addCard(text, emoji, label, color, columnId);
                 closeModal();
-            }
-        });
-
-        function openAddCardModal() {
-            const html = `
-                <h3>✨ Новое дело</h3>
-                <div class="form-group">
-                    <label>Текст дела</label>
-                    <input type="text" id="newCardText" placeholder="Что нужно сделать?" autofocus>
-                </div>
-                <div class="form-group">
-                    <label>Текстовая пометка</label>
-                    <input type="text" id="newCardLabel" placeholder="Например: срочно, баг, фича">
-                </div>
-                <div class="form-group">
-                    <label>Эмодзи</label>
-                    <div class="emoji-grid" id="emojiPickerNew">${emojiList.map(e => `<span class="emoji-option" data-emoji="${e}">${e}</span>`).join('')}</div>
-                    <input type="hidden" id="selectedEmojiNew" value="📝">
-                </div>
-                <div class="form-group">
-                    <label>Цвет подсветки</label>
-                    <div class="color-presets" id="colorPickerNew">${colorPresets.map(c => `<span class="color-preset" style="background:${c};" data-color="${c}"></span>`).join('')}</div>
-                    <input type="hidden" id="selectedColorNew" value="#6c5ce7">
-                </div>
-                <div class="form-group">
-                    <label>Колонка</label>
-                    <select id="newCardColumn">
-                        ${data.columns.map(c => `<option value="${c.id}">${c.title}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
-                    <button class="btn btn-primary" id="saveNewCard">Создать</button>
-                </div>
-            `;
-            openModal(html);
-
-            // Обработчики внутри модалки
-            setTimeout(() => {
-                const emojiPicker = document.getElementById('emojiPickerNew');
-                const colorPicker = document.getElementById('colorPickerNew');
-                
-                // Подсветка первого эмодзи
-                const firstEmoji = emojiPicker.querySelector('.emoji-option');
-                if (firstEmoji) firstEmoji.style.background = 'var(--border)';
-                
-                // Подсветка первого цвета
-                const firstColor = colorPicker.querySelector('.color-preset');
-                if (firstColor) firstColor.classList.add('active');
-
-                emojiPicker.addEventListener('click', (e) => {
-                    const emojiEl = e.target.closest('.emoji-option');
-                    if (emojiEl) {
-                        document.getElementById('selectedEmojiNew').value = emojiEl.dataset.emoji;
-                        emojiPicker.querySelectorAll('.emoji-option').forEach(el => el.style.background = '');
-                        emojiEl.style.background = 'var(--border)';
-                    }
-                });
-                colorPicker.addEventListener('click', (e) => {
-                    const colorEl = e.target.closest('.color-preset');
-                    if (colorEl) {
-                        document.getElementById('selectedColorNew').value = colorEl.dataset.color;
-                        colorPicker.querySelectorAll('.color-preset').forEach(el => el.classList.remove('active'));
-                        colorEl.classList.add('active');
-                    }
-                });
-                document.getElementById('saveNewCard').addEventListener('click', () => {
-                    const text = document.getElementById('newCardText').value.trim() || 'Новое дело';
-                    const label = document.getElementById('newCardLabel').value.trim();
-                    const emoji = document.getElementById('selectedEmojiNew').value;
-                    const color = document.getElementById('selectedColorNew').value;
-                    const columnId = document.getElementById('newCardColumn').value;
-                    addCard(text, emoji, label, color, columnId);
-                    closeModal();
-                });
-                
-                // Сохранение по Enter
-                document.getElementById('newCardText').addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        document.getElementById('saveNewCard').click();
-                    }
-                });
-            }, 50);
-        }
-
-        function openDeleteConfirm(cardId) {
-            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
-            if (!card) return;
+            });
             
-            const html = `
-                <h3>🗑️ Удаление дела</h3>
-                <p>Вы действительно хотите удалить дело "<strong>${escapeHtml(card.text)}</strong>"? 
-                Это действие нельзя отменить.</p>
-                <div class="modal-buttons">
-                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
-                    <button class="btn btn-danger" id="confirmDelete">🗑️ Удалить</button>
-                </div>
-            `;
-            openModal(html);
+            document.getElementById('newCardText')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('saveNewCard')?.click();
+                }
+            });
+        }, 100);
+    }
+
+    function openDeleteConfirm(cardId) {
+        const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+        if (!card) return;
+        
+        const html = `
+            <h3>🗑️ Удаление дела</h3>
+            <p>Вы действительно хотите удалить дело "<strong>${escapeHtml(card.text)}</strong>"? Это действие нельзя отменить.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-danger" id="confirmDelete">🗑️ Удалить</button>
+            </div>
+        `;
+        openModal(html);
+        
+        setTimeout(() => {
+            document.getElementById('confirmDelete')?.addEventListener('click', () => {
+                deleteCard(cardId);
+                closeModal();
+            });
+        }, 100);
+    }
+
+    function openEmojiPicker(cardId) {
+        const html = `
+            <h3>🎨 Выберите эмодзи</h3>
+            <div class="emoji-grid">${emojiList.map(e => `<span class="emoji-option" data-emoji="${e}">${e}</span>`).join('')}</div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+            </div>
+        `;
+        openModal(html);
+        setTimeout(() => {
+            document.querySelector('.emoji-grid')?.addEventListener('click', (e) => {
+                const emojiEl = e.target.closest('.emoji-option');
+                if (emojiEl) {
+                    updateCardEmoji(cardId, emojiEl.dataset.emoji);
+                    closeModal();
+                }
+            });
+        }, 100);
+    }
+
+    function openColorPicker(cardId) {
+        const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+        const currentColor = card?.color || '#6c5ce7';
+        const html = `
+            <h3>🎨 Цвет подсветки</h3>
+            <div class="color-presets" id="colorPickSingle">${colorPresets.map(c => `<span class="color-preset ${c === currentColor ? 'active' : ''}" style="background:${c};" data-color="${c}"></span>`).join('')}</div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" onclick="closeModal()">Закрыть</button>
+            </div>
+        `;
+        openModal(html);
+        setTimeout(() => {
+            document.getElementById('colorPickSingle')?.addEventListener('click', (e) => {
+                const colorEl = e.target.closest('.color-preset');
+                if (colorEl) {
+                    updateCardColor(cardId, colorEl.dataset.color);
+                    closeModal();
+                }
+            });
+        }, 100);
+    }
+
+    function openRenameModal(cardId) {
+        const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+        if (!card) return;
+        const html = `
+            <h3>✏️ Переименовать</h3>
+            <div class="form-group">
+                <label>Текст дела</label>
+                <input type="text" id="renameText" value="${escapeHtml(card.text)}" autofocus>
+            </div>
+            <div class="form-group">
+                <label>Текстовая пометка</label>
+                <input type="text" id="renameLabel" value="${escapeHtml(card.label || '')}">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" id="saveRename">Сохранить</button>
+            </div>
+        `;
+        openModal(html);
+        setTimeout(() => {
+            document.getElementById('saveRename')?.addEventListener('click', () => {
+                const newText = document.getElementById('renameText')?.value.trim();
+                const newLabel = document.getElementById('renameLabel')?.value.trim();
+                if (newText) {
+                    renameCard(cardId, newText, newLabel);
+                }
+                closeModal();
+            });
             
-            setTimeout(() => {
-                document.getElementById('confirmDelete').addEventListener('click', () => {
-                    deleteCard(cardId);
-                    closeModal();
-                });
-            }, 50);
-        }
+            document.getElementById('renameText')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('saveRename')?.click();
+                }
+            });
+        }, 100);
+    }
 
-        function openEmojiPicker(cardId) {
-            const html = `
-                <h3>🎨 Выберите эмодзи</h3>
-                <div class="emoji-grid">${emojiList.map(e => `<span class="emoji-option" data-emoji="${e}">${e}</span>`).join('')}</div>
-                <div class="modal-buttons">
-                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
-                </div>
-            `;
-            openModal(html);
-            setTimeout(() => {
-                document.querySelector('.emoji-grid').addEventListener('click', (e) => {
-                    const emojiEl = e.target.closest('.emoji-option');
-                    if (emojiEl) {
-                        updateCardEmoji(cardId, emojiEl.dataset.emoji);
-                        closeModal();
-                    }
-                });
-            }, 50);
-        }
-
-        function openColorPicker(cardId) {
-            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
-            const currentColor = card ? card.color : '#6c5ce7';
-            const html = `
-                <h3>🎨 Цвет подсветки</h3>
-                <div class="color-presets" id="colorPickSingle">${colorPresets.map(c => `<span class="color-preset ${c === currentColor ? 'active' : ''}" style="background:${c};" data-color="${c}"></span>`).join('')}</div>
-                <div class="modal-buttons">
-                    <button class="btn btn-outline" onclick="window.closeModal()">Закрыть</button>
-                </div>
-            `;
-            openModal(html);
-            setTimeout(() => {
-                document.getElementById('colorPickSingle').addEventListener('click', (e) => {
-                    const colorEl = e.target.closest('.color-preset');
-                    if (colorEl) {
-                        updateCardColor(cardId, colorEl.dataset.color);
-                        closeModal();
-                    }
-                });
-            }, 50);
-        }
-
-        function openRenameModal(cardId) {
-            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
-            if (!card) return;
-            const html = `
-                <h3>✏️ Переименовать</h3>
-                <div class="form-group">
-                    <label>Текст дела</label>
-                    <input type="text" id="renameText" value="${escapeHtml(card.text)}" autofocus>
-                </div>
-                <div class="form-group">
-                    <label>Текстовая пометка</label>
-                    <input type="text" id="renameLabel" value="${escapeHtml(card.label || '')}">
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
-                    <button class="btn btn-primary" id="saveRename">Сохранить</button>
-                </div>
-            `;
-            openModal(html);
-            setTimeout(() => {
-                document.getElementById('saveRename').addEventListener('click', () => {
-                    const newText = document.getElementById('renameText').value.trim();
-                    const newLabel = document.getElementById('renameLabel').value.trim();
-                    if (newText) {
-                        renameCard(cardId, newText, newLabel);
-                    }
-                    closeModal();
-                });
-                
-                // Сохранение по Enter
-                document.getElementById('renameText').addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        document.getElementById('saveRename').click();
-                    }
-                });
-            }, 50);
-        }
-
-        // Глобальные ссылки для кнопок в модалках
-        window.closeModal = closeModal;
-
-        // ---------- АРХИВ TOGGLE ----------
-        document.getElementById('archiveToggle').addEventListener('click', function() {
-            const body = document.getElementById('archiveBody');
-            const arrow = document.getElementById('archiveArrow');
+    // Архив toggle
+    document.getElementById('archiveToggle')?.addEventListener('click', function() {
+        const body = document.getElementById('archiveBody');
+        const arrow = document.getElementById('archiveArrow');
+        if (body && arrow) {
             body.classList.toggle('open');
             arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
-        });
+        }
+    });
 
-        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
-        document.getElementById('addCardBtn').addEventListener('click', openAddCardModal);
-        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+    // Инициализация
+    document.getElementById('addCardBtn')?.addEventListener('click', openAddCardModal);
+    document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
 
-        // Загрузка темы
-        const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
-        applyTheme(savedTheme);
-
-        // Загрузка данных
-        loadData();
+    // Загрузка
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    applyTheme(savedTheme);
+    loadData();
+    
+    // Убедимся что DOM загружен
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderBoard);
+    } else {
         renderBoard();
-    })();
+    }
+    
+    console.log('✅ KanbanFlow загружен успешно!');
+})();
 </script>
 </body>
 </html>
