@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban доска</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --surface2: #f8f9fa;
+            --text: #1a1a2e;
+            --text2: #555;
+            --border: #e0e0e0;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.1);
+            --accent: #6c5ce7;
+            --accent-hover: #5a4bd1;
+            --danger: #e74c3c;
+            --danger-hover: #c0392b;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --column-bg: #f5f6fa;
+            --card-hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --emoji-picker-bg: #fff;
+            --modal-overlay: rgba(0,0,0,0.4);
+            --badge-bg: #eee;
+            --badge-text: #444;
+        }
+
+        .dark {
+            --bg: #1a1b1e;
+            --surface: #25262b;
+            --surface2: #2c2e33;
+            --text: #e0e0e0;
+            --text2: #aaa;
+            --border: #3a3b40;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+            --column-bg: #1f2024;
+            --card-hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+            --emoji-picker-bg: #2c2e33;
+            --modal-overlay: rgba(0,0,0,0.7);
+            --badge-bg: #3a3b40;
+            --badge-text: #ccc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            transition: background var(--transition), border var(--transition);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.35);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(108, 92, 231, 0.05);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+
+        .btn-icon {
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.2rem;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: var(--danger-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.35);
+        }
+
+        .board {
+            display: flex;
+            gap: 24px;
+            padding: 28px 32px;
+            overflow-x: auto;
+            min-height: calc(100vh - 200px);
+            align-items: flex-start;
+        }
+
+        .column {
+            background: var(--column-bg);
+            border-radius: 20px;
+            min-width: 320px;
+            max-width: 380px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), box-shadow var(--transition);
+            border: 1px solid var(--border);
+        }
+
+        .column-header {
+            padding: 20px 20px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.3px;
+        }
+
+        .column-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .column-count {
+            background: var(--border);
+            color: var(--text2);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .column-body {
+            padding: 8px 12px 16px;
+            flex: 1;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 14px;
+            padding: 16px;
+            cursor: grab;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeSlideIn 0.25s ease;
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card:hover {
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-2px);
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg) scale(0.96);
+            box-shadow: var(--shadow-lg);
+        }
+        .card.drag-over {
+            border: 2px dashed var(--accent);
+            background: rgba(108, 92, 231, 0.03);
+        }
+        .card.deleting {
+            animation: deleteAnim 0.3s ease forwards;
+        }
+        @keyframes deleteAnim {
+            to { 
+                opacity: 0; 
+                transform: scale(0.8) translateX(20px); 
+                margin-bottom: -80px;
+                padding: 0;
+            }
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+        }
+        .card-emoji {
+            font-size: 1.8rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 0.2s;
+            background: var(--badge-bg);
+            border-radius: 10px;
+            padding: 4px 8px;
+        }
+        .card-emoji:hover {
+            transform: scale(1.2);
+        }
+        .card-text-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .card-color-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card-color-indicator:hover {
+            transform: scale(1.3);
+        }
+        .card-body-text {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .card-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .card-actions .btn-sm {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .card-actions .btn-sm:hover {
+            background: var(--border);
+        }
+        .card-actions .btn-archive {
+            background: rgba(39, 174, 96, 0.08);
+            color: var(--success);
+            border-color: transparent;
+        }
+        .card-actions .btn-archive:hover {
+            background: rgba(39, 174, 96, 0.15);
+        }
+        .card-actions .btn-delete {
+            background: rgba(231, 76, 60, 0.08);
+            color: var(--danger);
+            border-color: transparent;
+        }
+        .card-actions .btn-delete:hover {
+            background: rgba(231, 76, 60, 0.15);
+        }
+
+        .archive-section {
+            margin: 0 32px 32px;
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: background var(--transition);
+        }
+        .archive-toggle {
+            width: 100%;
+            padding: 16px 24px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .archive-toggle:hover {
+            background: var(--surface2);
+        }
+        .archive-body {
+            display: none;
+            padding: 8px 24px 24px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .archive-body.open {
+            display: flex;
+        }
+        .archived-card {
+            opacity: 0.8;
+            background: var(--surface2);
+            flex: 1 1 280px;
+            max-width: 340px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--modal-overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.2s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 28px;
+            width: 440px;
+            max-width: 92vw;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: popIn 0.25s ease;
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .modal p {
+            color: var(--text2);
+            line-height: 1.5;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text2);
+            letter-spacing: 0.2px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all var(--transition);
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .color-presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .color-preset {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.15s;
+        }
+        .color-preset:hover { transform: scale(1.15); }
+        .color-preset.active { border-color: var(--text); transform: scale(1.1); }
+        .emoji-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 140px;
+            overflow-y: auto;
+            background: var(--surface2);
+            padding: 10px;
+            border-radius: 14px;
+        }
+        .emoji-option {
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+        .emoji-option:hover { background: var(--border); }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .drop-zone-empty {
+            text-align: center;
+            color: var(--text2);
+            padding: 20px;
+            font-style: italic;
+            font-size: 0.85rem;
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            margin: 8px;
+        }
+    </style>
+</head>
+<body class="light">
+<div class="header">
+    <div class="header-left">
+        <span class="logo">📋 KanbanFlow</span>
+        <button class="btn btn-outline btn-sm" id="themeToggle">🌓 Тема</button>
+    </div>
+    <button class="btn btn-primary" id="addCardBtn">➕ Новое дело</button>
+</div>
+
+<div class="board" id="board">
+    <!-- генерируется JS -->
+</div>
+
+<div class="archive-section">
+    <button class="archive-toggle" id="archiveToggle">
+        📦 Архив <span id="archiveArrow">▼</span>
+    </button>
+    <div class="archive-body" id="archiveBody"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" style="display: none;">
+    <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+    (function() {
+        // ---------- СОСТОЯНИЕ ----------
+        const STORAGE_KEY = 'kanban_board_data';
+        const THEME_KEY = 'kanban_theme';
+
+        const defaultColumns = [
+            { id: 'todo', title: '📌 Сделать' },
+            { id: 'inprogress', title: '⚡ В процессе' },
+            { id: 'done', title: '✅ Готово' },
+        ];
+
+        // Эмодзи для выбора
+        const emojiList = [
+            '📝', '💡', '🔥', '⭐', '🚀', '🐛', '🎯', '💬', '🧠', '🎨',
+            '📊', '🔧', '🛠️', '📌', '⏳', '💎', '🎉', '🧩', '📎', '🔔',
+            '❤️', '👍', '👎', '😎', '🤖', '🎵', '📸', '🌍', '🍀', '⚡'
+        ];
+
+        // Цвета для подсветки
+        const colorPresets = [
+            '#ff6b6b', '#ffa502', '#ffd32a', '#2ed573', '#1e90ff',
+            '#6c5ce7', '#a55eea', '#ff6eb4', '#00d2d3', '#ff9ff3',
+            '#54a0ff', '#5f27cd', '#01a3a4', '#f368e0', '#ff6348',
+            '#7bed9f', '#70a1ff', '#5352ed', '#ff4757', '#2bcbba',
+        ];
+
+        let data = {
+            columns: JSON.parse(JSON.stringify(defaultColumns)),
+            cards: [],
+            archivedCards: []
+        };
+
+        // ---------- УТИЛИТЫ ----------
+        function generateId() {
+            return 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    data.columns = parsed.columns || JSON.parse(JSON.stringify(defaultColumns));
+                    data.cards = parsed.cards || [];
+                    data.archivedCards = parsed.archivedCards || [];
+                } catch (e) {
+                    resetData();
+                }
+            } else {
+                resetData();
+            }
+        }
+
+        function resetData() {
+            data.columns = JSON.parse(JSON.stringify(defaultColumns));
+            data.cards = [];
+            data.archivedCards = [];
+        }
+
+        function getCardsByColumn(columnId) {
+            return data.cards.filter(c => c.columnId === columnId);
+        }
+
+        // ---------- ТЕМА ----------
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark');
+            } else {
+                document.body.classList.remove('dark');
+            }
+            localStorage.setItem(THEME_KEY, theme);
+        }
+
+        function toggleTheme() {
+            const current = localStorage.getItem(THEME_KEY) || 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        // ---------- РЕНДЕР ----------
+        function renderBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+
+            data.columns.forEach(col => {
+                const columnEl = document.createElement('div');
+                columnEl.className = 'column';
+                columnEl.dataset.columnId = col.id;
+                columnEl.innerHTML = `
+                    <div class="column-header">
+                        <span class="column-title">${col.title}</span>
+                        <span class="column-count">${getCardsByColumn(col.id).length}</span>
+                    </div>
+                    <div class="column-body" data-column-id="${col.id}"></div>
+                `;
+
+                const body = columnEl.querySelector('.column-body');
+                const cards = getCardsByColumn(col.id);
+                if (cards.length === 0) {
+                    body.innerHTML = '<div class="drop-zone-empty">Перетащите дело сюда</div>';
+                } else {
+                    cards.forEach(card => body.appendChild(createCardElement(card)));
+                }
+
+                // Drag & Drop события на колонке
+                body.addEventListener('dragover', handleDragOver);
+                body.addEventListener('dragleave', handleDragLeave);
+                body.addEventListener('drop', handleDrop);
+
+                board.appendChild(columnEl);
+            });
+
+            renderArchive();
+        }
+
+        function createCardElement(card) {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.draggable = true;
+            cardEl.dataset.cardId = card.id;
+            cardEl.style.borderLeft = `4px solid ${card.color || '#6c5ce7'}`;
+
+            cardEl.innerHTML = `
+                <div class="card-header">
+                    <span class="card-emoji" data-action="change-emoji">${card.emoji || '📝'}</span>
+                    <span class="card-text-badge">${escapeHtml(card.label || '')}</span>
+                    <span class="card-color-indicator" style="background: ${card.color || '#6c5ce7'};" data-action="change-color"></span>
+                </div>
+                <div class="card-body-text">${escapeHtml(card.text)}</div>
+                <div class="card-actions">
+                    <button class="btn btn-sm" data-action="rename" title="Переименовать">✏️</button>
+                    <button class="btn btn-sm btn-archive" data-action="archive" title="Архивировать">📦</button>
+                    <button class="btn btn-sm btn-delete" data-action="delete" title="Удалить">🗑️</button>
+                </div>
+            `;
+
+            // Drag события
+            cardEl.addEventListener('dragstart', handleDragStart);
+            cardEl.addEventListener('dragend', handleDragEnd);
+
+            // Клики по кнопкам
+            cardEl.querySelector('[data-action="change-emoji"]').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEmojiPicker(card.id);
+            });
+            cardEl.querySelector('[data-action="change-color"]').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openColorPicker(card.id);
+            });
+            cardEl.querySelector('[data-action="rename"]').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openRenameModal(card.id);
+            });
+            cardEl.querySelector('[data-action="archive"]').addEventListener('click', (e) => {
+                e.stopPropagation();
+                archiveCard(card.id);
+            });
+            cardEl.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openDeleteConfirm(card.id);
+            });
+
+            return cardEl;
+        }
+
+        function renderArchive() {
+            const archiveBody = document.getElementById('archiveBody');
+            archiveBody.innerHTML = '';
+            if (data.archivedCards.length === 0) {
+                archiveBody.innerHTML = '<p style="color: var(--text2); padding: 10px;">Архив пуст</p>';
+                return;
+            }
+            data.archivedCards.forEach(card => {
+                const cardEl = createCardElement(card);
+                cardEl.classList.add('archived-card');
+                cardEl.draggable = false;
+                // Меняем кнопку архивации на восстановление
+                const archiveBtn = cardEl.querySelector('[data-action="archive"]');
+                if (archiveBtn) {
+                    archiveBtn.textContent = '↩️';
+                    archiveBtn.className = 'btn btn-sm';
+                    archiveBtn.title = 'Восстановить';
+                    archiveBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        restoreCard(card.id);
+                    };
+                }
+                archiveBody.appendChild(cardEl);
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ---------- DRAG & DROP ----------
+        let draggedCardId = null;
+
+        function handleDragStart(e) {
+            draggedCardId = this.dataset.cardId;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', draggedCardId);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedCardId = null;
+            document.querySelectorAll('.card.drag-over').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const columnId = this.dataset.columnId;
+            const cardId = e.dataTransfer.getData('text/plain') || draggedCardId;
+            if (!cardId || !columnId) return;
+
+            // Ищем карту (может быть в активных или архиве)
+            let card = data.cards.find(c => c.id === cardId);
+            if (!card) {
+                card = data.archivedCards.find(c => c.id === cardId);
+                if (card) {
+                    // Перемещаем из архива в активные
+                    data.archivedCards = data.archivedCards.filter(c => c.id !== cardId);
+                    card.columnId = columnId;
+                    data.cards.push(card);
+                }
+            } else {
+                card.columnId = columnId;
+            }
+            saveData();
+            renderAll();
+        }
+
+        // ---------- ДЕЙСТВИЯ ----------
+        function addCard(text, emoji, label, color, columnId) {
+            const newCard = {
+                id: generateId(),
+                text: text || 'Новое дело',
+                emoji: emoji || '📝',
+                label: label || '',
+                color: color || '#6c5ce7',
+                columnId: columnId || data.columns[0].id,
+                createdAt: Date.now()
+            };
+            data.cards.push(newCard);
+            saveData();
+            renderAll();
+        }
+
+        function deleteCard(cardId) {
+            // Удаляем из активных
+            data.cards = data.cards.filter(c => c.id !== cardId);
+            // Удаляем из архива
+            data.archivedCards = data.archivedCards.filter(c => c.id !== cardId);
+            saveData();
+            renderAll();
+        }
+
+        function archiveCard(cardId) {
+            const cardIndex = data.cards.findIndex(c => c.id === cardId);
+            if (cardIndex === -1) return;
+            const card = data.cards.splice(cardIndex, 1)[0];
+            data.archivedCards.push(card);
+            saveData();
+            renderAll();
+        }
+
+        function restoreCard(cardId) {
+            const cardIndex = data.archivedCards.findIndex(c => c.id === cardId);
+            if (cardIndex === -1) return;
+            const card = data.archivedCards.splice(cardIndex, 1)[0];
+            card.columnId = data.columns[0].id; // Возвращаем в первую колонку
+            data.cards.push(card);
+            saveData();
+            renderAll();
+        }
+
+        function renameCard(cardId, newText, newLabel) {
+            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+            if (!card) return;
+            if (newText !== undefined) card.text = newText;
+            if (newLabel !== undefined) card.label = newLabel;
+            saveData();
+            renderAll();
+        }
+
+        function updateCardEmoji(cardId, emoji) {
+            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+            if (!card) return;
+            card.emoji = emoji;
+            saveData();
+            renderAll();
+        }
+
+        function updateCardColor(cardId, color) {
+            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+            if (!card) return;
+            card.color = color;
+            saveData();
+            renderAll();
+        }
+
+        function renderAll() {
+            renderBoard();
+        }
+
+        // ---------- МОДАЛЬНЫЕ ОКНА ----------
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+
+        function openModal(html) {
+            modalContent.innerHTML = html;
+            modalOverlay.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modalOverlay.style.display = 'none';
+            modalContent.innerHTML = '';
+        }
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.style.display === 'flex') {
+                closeModal();
+            }
+        });
+
+        function openAddCardModal() {
+            const html = `
+                <h3>✨ Новое дело</h3>
+                <div class="form-group">
+                    <label>Текст дела</label>
+                    <input type="text" id="newCardText" placeholder="Что нужно сделать?" autofocus>
+                </div>
+                <div class="form-group">
+                    <label>Текстовая пометка</label>
+                    <input type="text" id="newCardLabel" placeholder="Например: срочно, баг, фича">
+                </div>
+                <div class="form-group">
+                    <label>Эмодзи</label>
+                    <div class="emoji-grid" id="emojiPickerNew">${emojiList.map(e => `<span class="emoji-option" data-emoji="${e}">${e}</span>`).join('')}</div>
+                    <input type="hidden" id="selectedEmojiNew" value="📝">
+                </div>
+                <div class="form-group">
+                    <label>Цвет подсветки</label>
+                    <div class="color-presets" id="colorPickerNew">${colorPresets.map(c => `<span class="color-preset" style="background:${c};" data-color="${c}"></span>`).join('')}</div>
+                    <input type="hidden" id="selectedColorNew" value="#6c5ce7">
+                </div>
+                <div class="form-group">
+                    <label>Колонка</label>
+                    <select id="newCardColumn">
+                        ${data.columns.map(c => `<option value="${c.id}">${c.title}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
+                    <button class="btn btn-primary" id="saveNewCard">Создать</button>
+                </div>
+            `;
+            openModal(html);
+
+            // Обработчики внутри модалки
+            setTimeout(() => {
+                const emojiPicker = document.getElementById('emojiPickerNew');
+                const colorPicker = document.getElementById('colorPickerNew');
+                
+                // Подсветка первого эмодзи
+                const firstEmoji = emojiPicker.querySelector('.emoji-option');
+                if (firstEmoji) firstEmoji.style.background = 'var(--border)';
+                
+                // Подсветка первого цвета
+                const firstColor = colorPicker.querySelector('.color-preset');
+                if (firstColor) firstColor.classList.add('active');
+
+                emojiPicker.addEventListener('click', (e) => {
+                    const emojiEl = e.target.closest('.emoji-option');
+                    if (emojiEl) {
+                        document.getElementById('selectedEmojiNew').value = emojiEl.dataset.emoji;
+                        emojiPicker.querySelectorAll('.emoji-option').forEach(el => el.style.background = '');
+                        emojiEl.style.background = 'var(--border)';
+                    }
+                });
+                colorPicker.addEventListener('click', (e) => {
+                    const colorEl = e.target.closest('.color-preset');
+                    if (colorEl) {
+                        document.getElementById('selectedColorNew').value = colorEl.dataset.color;
+                        colorPicker.querySelectorAll('.color-preset').forEach(el => el.classList.remove('active'));
+                        colorEl.classList.add('active');
+                    }
+                });
+                document.getElementById('saveNewCard').addEventListener('click', () => {
+                    const text = document.getElementById('newCardText').value.trim() || 'Новое дело';
+                    const label = document.getElementById('newCardLabel').value.trim();
+                    const emoji = document.getElementById('selectedEmojiNew').value;
+                    const color = document.getElementById('selectedColorNew').value;
+                    const columnId = document.getElementById('newCardColumn').value;
+                    addCard(text, emoji, label, color, columnId);
+                    closeModal();
+                });
+                
+                // Сохранение по Enter
+                document.getElementById('newCardText').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        document.getElementById('saveNewCard').click();
+                    }
+                });
+            }, 50);
+        }
+
+        function openDeleteConfirm(cardId) {
+            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            const html = `
+                <h3>🗑️ Удаление дела</h3>
+                <p>Вы действительно хотите удалить дело "<strong>${escapeHtml(card.text)}</strong>"? 
+                Это действие нельзя отменить.</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
+                    <button class="btn btn-danger" id="confirmDelete">🗑️ Удалить</button>
+                </div>
+            `;
+            openModal(html);
+            
+            setTimeout(() => {
+                document.getElementById('confirmDelete').addEventListener('click', () => {
+                    deleteCard(cardId);
+                    closeModal();
+                });
+            }, 50);
+        }
+
+        function openEmojiPicker(cardId) {
+            const html = `
+                <h3>🎨 Выберите эмодзи</h3>
+                <div class="emoji-grid">${emojiList.map(e => `<span class="emoji-option" data-emoji="${e}">${e}</span>`).join('')}</div>
+                <div class="modal-buttons">
+                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
+                </div>
+            `;
+            openModal(html);
+            setTimeout(() => {
+                document.querySelector('.emoji-grid').addEventListener('click', (e) => {
+                    const emojiEl = e.target.closest('.emoji-option');
+                    if (emojiEl) {
+                        updateCardEmoji(cardId, emojiEl.dataset.emoji);
+                        closeModal();
+                    }
+                });
+            }, 50);
+        }
+
+        function openColorPicker(cardId) {
+            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+            const currentColor = card ? card.color : '#6c5ce7';
+            const html = `
+                <h3>🎨 Цвет подсветки</h3>
+                <div class="color-presets" id="colorPickSingle">${colorPresets.map(c => `<span class="color-preset ${c === currentColor ? 'active' : ''}" style="background:${c};" data-color="${c}"></span>`).join('')}</div>
+                <div class="modal-buttons">
+                    <button class="btn btn-outline" onclick="window.closeModal()">Закрыть</button>
+                </div>
+            `;
+            openModal(html);
+            setTimeout(() => {
+                document.getElementById('colorPickSingle').addEventListener('click', (e) => {
+                    const colorEl = e.target.closest('.color-preset');
+                    if (colorEl) {
+                        updateCardColor(cardId, colorEl.dataset.color);
+                        closeModal();
+                    }
+                });
+            }, 50);
+        }
+
+        function openRenameModal(cardId) {
+            const card = data.cards.find(c => c.id === cardId) || data.archivedCards.find(c => c.id === cardId);
+            if (!card) return;
+            const html = `
+                <h3>✏️ Переименовать</h3>
+                <div class="form-group">
+                    <label>Текст дела</label>
+                    <input type="text" id="renameText" value="${escapeHtml(card.text)}" autofocus>
+                </div>
+                <div class="form-group">
+                    <label>Текстовая пометка</label>
+                    <input type="text" id="renameLabel" value="${escapeHtml(card.label || '')}">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn btn-outline" onclick="window.closeModal()">Отмена</button>
+                    <button class="btn btn-primary" id="saveRename">Сохранить</button>
+                </div>
+            `;
+            openModal(html);
+            setTimeout(() => {
+                document.getElementById('saveRename').addEventListener('click', () => {
+                    const newText = document.getElementById('renameText').value.trim();
+                    const newLabel = document.getElementById('renameLabel').value.trim();
+                    if (newText) {
+                        renameCard(cardId, newText, newLabel);
+                    }
+                    closeModal();
+                });
+                
+                // Сохранение по Enter
+                document.getElementById('renameText').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        document.getElementById('saveRename').click();
+                    }
+                });
+            }, 50);
+        }
+
+        // Глобальные ссылки для кнопок в модалках
+        window.closeModal = closeModal;
+
+        // ---------- АРХИВ TOGGLE ----------
+        document.getElementById('archiveToggle').addEventListener('click', function() {
+            const body = document.getElementById('archiveBody');
+            const arrow = document.getElementById('archiveArrow');
+            body.classList.toggle('open');
+            arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+        });
+
+        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+        document.getElementById('addCardBtn').addEventListener('click', openAddCardModal);
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+        // Загрузка темы
+        const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+        applyTheme(savedTheme);
+
+        // Загрузка данных
+        loadData();
+        renderBoard();
+    })();
+</script>
+</body>
+</html>
